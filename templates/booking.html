@@ -5,13 +5,24 @@
     <title>Booking for {{competition['name']}} || GUDLFT</title>
 </head>
 <body>
-    <h2>{{competition['name']}}</h2>
-    Places available: {{competition['numberOfPlaces']}}
-    <form action="/purchasePlaces" method="post">
-        <input type="hidden" name="club" value="{{club['name']}}">
-        <input type="hidden" name="competition" value="{{competition['name']}}">
-        <label for="places">How many places?</label><input type="number" name="places" id=""/>
-        <button type="submit">Book</button>
-    </form>
+<h2>{{competition['name']}}</h2>
+Places available: {{competition['numberOfPlaces']}} <br>
+Club Points available: {{ club['points'] }}
+
+<form action="/purchasePlaces" method="post">
+    <input type="hidden" name="club" value="{{club['name']}}">
+    <input type="hidden" name="competition" value="{{competition['name']}}">
+    {% with messages = get_flashed_messages()%}
+    {% if messages %}
+        <ul>
+            {% for message in messages %}
+                <li>{{message}}</li>
+            {% endfor %}
+        </ul>
+    {% endif%}
+    {%endwith%}
+    <label for="places">How many places?</label><input type="number" name="places" id=""/>
+    <button type="submit">Book</button>
+</form>
 </body>
 </html>
