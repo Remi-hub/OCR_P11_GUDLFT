@@ -26,15 +26,17 @@ def index():
     return render_template("index.html")
 
 
-@app.route("/showSummary", methods=["POST"])
+@app.route("/showSummary", methods=["GET", "POST"])
 def showSummary():
-    club_found = [club for club in clubs if club["email"] == request.form["email"]]
-    if len(club_found) > 0:
-        return render_template("welcome.html", club=club_found[0], competitions=competitions)
-    else:
-        flash("Sorry, that email wasn't found.", 'error')
+    if request.method == "POST":
+        club_found = [club for club in clubs if club["email"] == request.form["email"]]
+        if len(club_found) > 0:
+            return render_template("welcome.html", club=club_found[0], competitions=competitions)
+        else:
+            flash("Sorry, that email wasn't found.", 'error')
+            return render_template("index.html")
+    if request.method == "GET":
         return render_template("index.html")
-
 
 @app.route("/book/<competition>/<club>")
 def book(competition, club):
@@ -73,12 +75,13 @@ def show_club_points():
     club_names = []
     for club in clubs:
         club_names.append(club['name'])
-        club_names.append(club['points'])
 
-    return render_template("showPoints.html", club=club_names)
+    club_points = []
+    for club in clubs:
+        club_points.append(club['points'])
 
-
-
+    return render_template("showPoints.html", len=len(club_names), club_names=club_names,
+                           club_points=club_points)
 
 
 @app.route("/logout")

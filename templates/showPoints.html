@@ -2,15 +2,19 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Point display</title>
+    <title>Points display</title>
 </head>
 <body>
 
-
-{{ club }}
-
+<h2>List of clubs with their points</h2>
 
 
+{%for i in range(0, len)%}
+    <li>{{club_names[i]}}, {{ club_points[i]}} points</li>
+{%endfor%}
+<br>
+
+<a href="{{ url_for('showSummary')}}">Back to index</a>
 
 </body>
 </html>
