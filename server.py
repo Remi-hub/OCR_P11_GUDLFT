@@ -53,20 +53,47 @@ def book(competition, club):
 
 @app.route("/purchasePlaces", methods=["POST"])
 def purchasePlaces():
-    competition = [c for c in competitions if c["name"] == request.form["competition"]][
-        0
-    ]
+    competition = [c for c in competitions if c["name"] == request.form["competition"]][0]
     club = [c for c in clubs if c["name"] == request.form["club"]][0]
-    placesRequired = int(request.form["places"])
-    if placesRequired > 12:
-        flash("Sorry, you can't buy more than 12 places")
-        return redirect(f'book/{competition["name"]}/{club["name"]}')
-    if placesRequired <= 12 and int(club['points']) > 0 and int(club['points']) >= int(request.form["places"]):
-        club['points'] = int(club['points']) - placesRequired
-        competition["numberOfPlaces"] = int(competition["numberOfPlaces"]) - placesRequired
-        flash("Great-booking complete! ")
+    club_reservation = club['reservation']
+    places_required = int(request.form["places"])
+    competition_name = competition['name']
+    places_booked = 0
+    total_price = places_required * 3
+
+    # checking if the club is registered for competition, if not we create it
+    if competition_name in club_reservation:
+        places_booked = club_reservation[competition_name]
     else:
-        flash("You don't have enough points")
+        club_reservation.setdefault(competition_name, 0)
+
+    # maximum places a club can book
+    places_available_for_club = 12
+
+    # listing our 3 conditions for clubs to book an event.
+    club_has_enough_points = int(club['points']) >= total_price
+    club_book_less_than_places_available = places_required <= places_available_for_club
+    club_book_less_than_13_places = places_booked + places_required <= places_available_for_club
+
+    club_can_book = club_has_enough_points and club_book_less_than_places_available and club_book_less_than_13_places
+
+    # if our conditions are True
+    if club_can_book:
+        places_booked = places_booked + places_required
+        club_reservation[competition_name] = places_booked
+        competition["numberOfPlaces"] = int(competition["numberOfPlaces"]) - places_required
+        points_left = int(club['points']) - total_price
+        club['points'] = points_left
+        flash('booking complete')
+        return render_template("welcome.html", club=club, competitions=competitions)
+
+    # if our conditions are False, we display an error message accordingly
+    error = ''
+    if not club_has_enough_points:
+        error += " You don't have enough points. "
+    if not club_book_less_than_13_places or not club_book_less_than_places_available:
+        error += " You can't book more than 12 places. "
+    flash(error)
     return render_template("welcome.html", club=club, competitions=competitions)
 
 
@@ -87,4 +114,3 @@ def show_club_points():
 @app.route("/logout")
 def logout():
     return redirect(url_for("index"))
-
