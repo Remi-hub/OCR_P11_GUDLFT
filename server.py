@@ -1,5 +1,6 @@
 import json
 from flask import Flask, render_template, request, redirect, flash, url_for
+from datetime import datetime, timedelta
 
 
 def loadClubs():
@@ -38,7 +39,8 @@ def showSummary():
     if request.method == "GET":
         return render_template("index.html")
 
-@app.route("/book/<competition>/<club>")
+
+@app.route("/book/<competition>/<club>", methods=["GET", "POST"])
 def book(competition, club):
     foundClub = [c for c in clubs if c["name"] == club][0]
     foundCompetition = [c for c in competitions if c["name"] == competition][0]
@@ -57,9 +59,13 @@ def purchasePlaces():
     club = [c for c in clubs if c["name"] == request.form["club"]][0]
     club_reservation = club['reservation']
     places_required = int(request.form["places"])
+
     competition_name = competition['name']
     places_booked = 0
+    # total_price is used to store the new price for the place required ( 3 club points for 1 place )
     total_price = places_required * 3
+    local_time = datetime.now()
+    competition_time = datetime.strptime(competition['date'], "%Y-%m-%d %H:%M:%S")
 
     # checking if the club is registered for competition, if not we create it
     if competition_name in club_reservation:
@@ -70,14 +76,16 @@ def purchasePlaces():
     # maximum places a club can book
     places_available_for_club = 12
 
-    # listing our 3 conditions for clubs to book an event.
+    # listing our 5 conditions for clubs to book an event.
     club_has_enough_points = int(club['points']) >= total_price
     club_book_less_than_places_available = places_required <= places_available_for_club
     club_book_less_than_13_places = places_booked + places_required <= places_available_for_club
+    competition_in_future = competition_time > local_time
+    places_required_superior_to_0 = int(request.form["places"]) > 0
 
-    club_can_book = club_has_enough_points and club_book_less_than_places_available and club_book_less_than_13_places
+    club_can_book = club_has_enough_points and club_book_less_than_places_available\
+                    and club_book_less_than_13_places and competition_in_future and places_required_superior_to_0
 
-    # if our conditions are True
     if club_can_book:
         places_booked = places_booked + places_required
         club_reservation[competition_name] = places_booked
@@ -93,6 +101,11 @@ def purchasePlaces():
         error += " You don't have enough points. "
     if not club_book_less_than_13_places or not club_book_less_than_places_available:
         error += " You can't book more than 12 places. "
+    if not competition_in_future:
+        error += " This competition already took place"
+    if not places_required_superior_to_0:
+        error += " You must book one place or more"
+
     flash(error)
     return render_template("welcome.html", club=club, competitions=competitions)
 
@@ -114,3 +127,7 @@ def show_club_points():
 @app.route("/logout")
 def logout():
     return redirect(url_for("index"))
+
+
+
+

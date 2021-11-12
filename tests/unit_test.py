@@ -1,5 +1,6 @@
 import pytest
 import server
+from datetime import datetime, timedelta
 
 
 class TestClient:
@@ -57,12 +58,12 @@ class TestBooking(TestClient):
         Check if the club points are deducted after a booking takes place
         """
         # We select a club with a total of 13 points
-        club_points = server.clubs[0]['points']
+        club_points = server.clubs[3]['points']
         # The client is booking one place
-        test_client.post('/purchasePlaces', data={'places': 1, 'club': 'Simply Lift',
-                                                  'competition': 'Spring Festival'}, follow_redirects=True)
+        test_client.post('/purchasePlaces', data={'places': 1, 'club': 'club_test_1',
+                                                  'competition': 'Test Competition'}, follow_redirects=True)
         # The club has now a total of 12 points ( 13 before the booking, a place cost 1 point )
-        club_points_left = server.clubs[0]['points']
+        club_points_left = server.clubs[3]['points']
         # We booked one place, costing 3 points, 13 club_points initially, minus 3 must be equal to 10
         assert club_points_left == 10
 
@@ -70,8 +71,8 @@ class TestBooking(TestClient):
         """
         check if a  message displays on successful booking
         """
-        res = test_client.post('/purchasePlaces', data={'places': 1, 'club': 'Simply Lift',
-                                                        'competition': 'Spring Festival'}, follow_redirects=True)
+        res = test_client.post('/purchasePlaces', data={'places': 1, 'club': 'club_test_1',
+                                                        'competition': 'Test Competition'}, follow_redirects=True)
 
         assert str(res.data).find('booking complete') > 0
 
@@ -116,7 +117,24 @@ class TestBooking(TestClient):
         assert competition_name == 'Spring Festival'
         assert number_of_places_booked == 0
 
+    def test_competition_is_in_the_past(self, test_client):
+        competition = server.competitions[0]
 
+        local_time = datetime.now()
+        competition_date = datetime.strptime(competition['date'], "%Y-%m-%d %H:%M:%S")
+
+        assert local_time > competition_date
+
+    def test_competition_is_in_the_future(self, test_client):
+        competition = server.competitions[2]
+
+        local_time = datetime.now()
+        competition_date = datetime.strptime(competition['date'], "%Y-%m-%d %H:%M:%S")
+
+        assert local_time < competition_date
+
+    def test_show_error_message_for_past_competition(self, test_client):
+        pass
 
 
 class TestShowPoints(TestClient):

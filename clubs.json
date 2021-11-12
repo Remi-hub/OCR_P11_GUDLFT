@@ -15,5 +15,19 @@
         "email": "kate@shelifts.co.uk",
         "points":"12",
         "reservation": {}
+    },
+    {
+        "name":"club_test_1",
+        "email":"club@test1.co",
+        "points":"13",
+        "reservation": {}
+    },
+    {
+        "name":"club_test_2",
+        "email":"club@test2.co",
+        "points":"13",
+        "reservation": {}
     }
+
+
 ]}
