@@ -2,7 +2,6 @@ import pytest
 import server
 
 
-
 class TestClient:
     @pytest.fixture()
     def test_client(self):
