@@ -118,6 +118,7 @@ class TestBooking(TestClient):
         assert number_of_places_booked == 0
 
     def test_competition_is_in_the_past(self, test_client):
+
         competition = server.competitions[0]
 
         local_time = datetime.now()
@@ -132,9 +133,6 @@ class TestBooking(TestClient):
         competition_date = datetime.strptime(competition['date'], "%Y-%m-%d %H:%M:%S")
 
         assert local_time < competition_date
-
-    def test_show_error_message_for_past_competition(self, test_client):
-        pass
 
 
 class TestShowPoints(TestClient):
